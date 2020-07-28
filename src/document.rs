@@ -2,6 +2,8 @@
 
 use std::cmp::Ordering;
 
+use crate::stream::Stream;
+
 // Spot
 
 #[derive(PartialEq, Eq, PartialOrd)]
@@ -24,6 +26,18 @@ impl Ord for Spot {
     }
 }
 
+impl Spot {
+    fn next_line(&mut self) {
+        self.line = self.line + 1;
+        self.colm = 0;
+    }
+
+    fn next_char(&mut self) {
+        self.line = self.line;
+        self.colm = self.colm + 1;
+    }
+}
+
 // Area
 
 pub struct Area {
@@ -40,7 +54,6 @@ impl Area {
 // Symbol
 
 pub enum SymbolKind {
-    Module,
     // KeyWord,
     // Variable,
     // StringValue,
@@ -55,10 +68,10 @@ pub struct Symbol {
 }
 
 impl Symbol {
-    pub fn find(&self, target: &Spot) -> &Symbol {
+    pub fn search(&self, target: &Spot) -> &Symbol {
         for symbol in self.children.iter() {
             if symbol.area.includes(target) {
-                return symbol.find(target)
+                return symbol.search(target)
             }
         }
 
@@ -85,7 +98,7 @@ impl Document {
     pub fn find(&self, target: &Spot) -> Option<&Symbol> {
         for symbol in self.symbols.iter() {
             if symbol.area.includes(target) {
-                return Some( symbol.find( target ) );
+                return Some( symbol.search( target ) );
             }
         }
 
@@ -97,7 +110,7 @@ pub fn index_of_lines(text: &str) -> Vec<usize> {
     let mut lines = vec! [ 0 ];
 
     let mut i = 0;
-    
+
     for chr in text.chars() {
         i += 1;
 
@@ -109,19 +122,39 @@ pub fn index_of_lines(text: &str) -> Vec<usize> {
     return lines;
 }
 
+pub fn tokenize(text: &str) -> Vec<Symbol> {
+    let mut tokens = vec! [];
+    let mut stream = Stream::new( text.as_bytes() );
+    let mut spot = Spot { line : 0 , colm : 1 };
+
+    loop {
+        // weve reached the end of the file
+        if stream.done() { break }
+
+        // go to next line when we reach end of line
+        if stream.peek() == &('\n' as u8) {
+            spot.next_line();
+            stream.skip();
+            continue;
+        }
+
+        // skip over white spaces
+        if stream.peek().is_ascii_whitespace() {
+            spot.next_char();
+            stream.skip();
+            continue;
+        }
+
+        stream.skip();
+    }
+
+    return tokens;
+}
+
 pub fn parse(text: &str) -> Document {
     return Document {
         text : String::from(text),
         line : index_of_lines(text),
-        symbols : vec! [
-            Symbol {
-                kind : SymbolKind::Module,
-                area : Area {
-                        start : Spot { line : 1 , colm : 0 },
-                        end   : Spot { line : 1 , colm : 3 }
-                    },
-                children : Vec::new()
-            }
-        ]
+        symbols : tokenize(text)
     }
 }
