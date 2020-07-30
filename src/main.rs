@@ -1,13 +1,55 @@
-// publish the modules
-pub mod document;
-pub mod stream;
+mod document;
+
+pub enum NodeKind {
+    MakeFunc,
+    CallFunc,
+    Variable,
+    Sequence,
+    Terminal,
+}
+
+pub enum Node <'a> {
+    FuncMake (&'a FuncMake<'a>),
+    FuncCall (&'a FuncCall<'a>),
+    Variable (&'a Variable)
+}
+
+pub struct FuncMakeParam <'a> {
+    name : String,
+    expt : Node<'a>
+}
+
+pub struct FuncMake <'a> {
+    params : Vec<FuncMakeParam<'a>>,
+    output : Node<'a>
+}
+
+pub struct FuncCallArg <'a> {
+    name  : Option<String>,
+    value : Node<'a>
+}
+
+pub struct FuncCall <'a> {
+    func : Node<'a>,
+    args : Vec<FuncCallArg<'a>>
+}
+
+pub struct Variable {
+    name : String
+}
+
+fn encode(node: &Node) -> String {
+    
+    return String::from("")
+}
 
 fn main() {
-    let doc = document::parse("([int x, int y] int)\n(+ 1 1)");
+    let token = & Variable { name : String::from("hi") };
 
-    let symbol = doc
-        .find( & document::Spot { line : 1 , colm : 1 } )
-        .expect("couldnt find the requested symbol");
+    let root = FuncMake {
+        params : vec! [],
+        output : Node::Variable( token )
+    };
 
-    println!( "{}", doc.get_area(&symbol.area) )
+    println!("{}", encode( & Node::FuncMake( & root ) ));
 }

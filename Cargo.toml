@@ -1,5 +1,5 @@
 [package]
-name = "gethen"
+name = "bus"
 version = "0.0.0"
 authors = ["FelixMo42"]
 edition = "2018"
