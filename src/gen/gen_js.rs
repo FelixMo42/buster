@@ -31,6 +31,8 @@ fn encode_statment_block<'a>(stm_block: &ast::StmBlock<'a>, tab: &str) -> String
 // }
 
 fn encode_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
+	let func_type = call.func;
+
 	format!("{}({})",
 		encode(call.func, tab),
 		encode_list(&call.args, |arg| encode(&arg, tab))

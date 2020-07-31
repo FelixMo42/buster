@@ -1,11 +1,19 @@
+use crate::scope;
+
 pub enum Node <'a> {
     FuncMake (FuncMake<'a>),
     FuncCall (FuncCall<'a>),
     StmBlock (StmBlock<'a>),
-    Variable (Variable),
+    Variable (Variable<'a>),
     NumValue (NumValue),
     // Sequence (Sequence) 
 }
+
+// pub impl Node {
+//     pub fn resolve() -> scope::Kind {
+
+//     }
+// }
 
 //
 
@@ -18,12 +26,6 @@ pub enum Statment <'a> {
 pub struct StmBlock <'a> {
     pub statments : Vec<Statment<'a>>
 }
-
-// impl StmBlock <'a> {
-//     pub fn new(statments: Vec<Statment<'a>>) -> Self {
-//         return StmBlock { statments };
-//     }
-// }
 
 //
 
@@ -46,17 +48,21 @@ pub struct FuncCall <'a> {
 
 //
 
-pub struct Variable {
-    pub name : String
+pub struct Variable <'a> {
+    pub name : String,
+    pub scope : &'a scope::Scope<'a>
 }
 
-impl Variable {
-    pub fn new<'a>(name: &'a str) -> Self {
-        return Variable { name : String::from(name) };
+impl <'a> Variable <'a> {
+    pub fn new(name: &'a str, scope: &'a scope::Scope) -> Self {
+        return Variable {
+            name : String::from(name),
+            scope : scope
+        };
     }
 
-    pub fn make<'a>(name: &'a str) -> Node {
-        return Node::Variable( Variable::new(name) );
+    pub fn make(name: &'a str, scope: &'a scope::Scope) -> Node<'a> {
+        return Node::Variable( Variable::new(name, scope) );
     }
 }
 
@@ -78,6 +84,7 @@ impl NumValue {
 }
 
 //
+
 pub struct Sequence {
     pub legth : usize,
 }

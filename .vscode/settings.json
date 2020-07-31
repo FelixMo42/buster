@@ -1,5 +1,5 @@
 {
     "files.exclude": {
-        // "Cargo.lock": true
+        "Cargo.lock": true
     }
 }

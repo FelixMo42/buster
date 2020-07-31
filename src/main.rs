@@ -1,6 +1,5 @@
 use structopt::StructOpt;
 
-
 // mod document;
 pub mod gen;
 pub mod ast;
@@ -15,21 +14,31 @@ enum CliOpts {
 }
 
 fn main() {
+	let mut scope = scope::Scope::new();
+
+	// add number operators
+	for name in [ "+", "-", "*", "/" ].iter() {
+		scope.add_lang_defined_func( name , vec! [
+			scope::Kind::new("i64"),
+			scope::Kind::new("i64"),
+		] );
+	};
+
 	// parse the command line arguments
 	let opt = CliOpts::from_args();
 
-	let add_func : ast::Node = ast::Variable::make("+");
-    let mul_func : ast::Node = ast::Variable::make("*");
+	let add_func : ast::Node = ast::Variable::make("+", &scope);
+    let mul_func : ast::Node = ast::Variable::make("*", &scope);
 
     let root = ast::Node::FuncMake(ast::FuncMake {
         params : vec! [
             ast::FuncMakeParam {
                 name : String::from("a"),
-                kind : ast::Variable::make("i64")
+                kind : ast::Variable::make("i64", &scope)
             },
             ast::FuncMakeParam {
                 name : String::from("b"),
-                kind : ast::Variable::make("i64")
+                kind : ast::Variable::make("i64", &scope)
             }
         ],
         body : ast::StmBlock {
@@ -37,7 +46,7 @@ fn main() {
                 ast::Statment::Assign(String::from("c"), ast::Node::FuncCall( ast::FuncCall {
                     func : &mul_func,
                     args : vec! [
-                        ast::Variable::make("a"),
+                        ast::Variable::make("a", &scope),
                         ast::NumValue::make(42),
                     ]
                 } ) ),
@@ -45,15 +54,15 @@ fn main() {
                 ast::Statment::Output( ast::Node::FuncCall( ast::FuncCall {
                     func : &add_func,
                     args : vec! [
-                        ast::Variable::make("b"),
-                        ast::Variable::make("c"),
+                        ast::Variable::make("b", &scope),
+                        ast::Variable::make("c", &scope),
                     ]
                 } ) )
             ]
 		}
 	});
-	
-	// gives are selves some padding
+
+	// give are selves some padding
 	println!("");
 
 	match opt {
@@ -72,7 +81,6 @@ fn main() {
 		}
 	}
 
-	// println!( "{}",  gen::gen_tus::generate(&root) );
-
-	// println!("{}", encode( & ast::Node::FuncMake( root ) , "" ));
+	// give are selves some padding
+	println!("");
 }
