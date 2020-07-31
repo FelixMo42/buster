@@ -1,9 +1,10 @@
 use structopt::StructOpt;
 
 // mod document;
-pub mod gen;
+pub mod generator;
 pub mod ast;
 pub mod scope;
+pub mod parser;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "buster")]
@@ -27,56 +28,18 @@ fn main() {
 	// parse the command line arguments
 	let opt = CliOpts::from_args();
 
-	let add_func : ast::Node = ast::Variable::make("+", &scope);
-    let mul_func : ast::Node = ast::Variable::make("*", &scope);
-
-    let root = ast::Node::FuncMake(ast::FuncMake {
-        params : vec! [
-            ast::FuncMakeParam {
-                name : String::from("a"),
-                kind : ast::Variable::make("i64", &scope)
-            },
-            ast::FuncMakeParam {
-                name : String::from("b"),
-                kind : ast::Variable::make("i64", &scope)
-            }
-        ],
-        body : ast::StmBlock {
-            statments : vec! [
-                ast::Statment::Assign(String::from("c"), ast::Node::FuncCall( ast::FuncCall {
-                    func : &mul_func,
-                    args : vec! [
-                        ast::Variable::make("a", &scope),
-                        ast::NumValue::make(42),
-                    ]
-                } ) ),
-
-                ast::Statment::Output( ast::Node::FuncCall( ast::FuncCall {
-                    func : &add_func,
-                    args : vec! [
-                        ast::Variable::make("b", &scope),
-                        ast::Variable::make("c", &scope),
-                    ]
-                } ) )
-            ]
-		}
-	});
-
+	// parse the file
+	let root = parser::parser::parser("");
+	
 	// give are selves some padding
 	println!("");
 
 	match opt {
 		CliOpts::To { format } => {
-			if format == "tus" {
-				println!( "{}",  gen::gen_tus::generate(&root) )
-			}
-
-			else if format == "js" {
-				println!( "{}",  gen::gen_js::generate(&root) )
-			}
-
-			else {
-				println!( "unrecognised output format '{}'", format );
+			match format.as_ref() {
+				"tus" => println!( "{}", generator::gen_tus::generate(&root) ),
+				"js"  => println!( "{}", generator::gen_js::generate(&root)  ),
+				_     => println!( "unrecognised output format '{}'", format )
 			}
 		}
 	}
