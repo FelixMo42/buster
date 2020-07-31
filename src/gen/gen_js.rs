@@ -22,34 +22,47 @@ fn encode_statment_block<'a>(stm_block: &ast::StmBlock<'a>, tab: &str) -> String
 	)
 }
 
-// fn encode_operator_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
-// 	format!("({a} {operator} {b})",
-// 		a = encode(&call.args[0], tab),
-// 		b = encode(&call.args[1], tab),
-// 		operator = "+"
-// 	)
-// }
+fn encode_operator_call<'a>(name: &str, args: &Vec<ast::Node>, tab: &str) -> String {
+	return format!("({a} {operator} {b})",
+		a = encode(&args[0], tab),
+		b = encode(&args[1], tab),
+		operator = name
+	);
+}
 
-fn encode_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
-	let func_type = call.func;
+fn encode_lang_function_call<'a>(name: &str, args: &Vec<ast::Node>, tab: &str) -> String {
+	return encode_operator_call(name, args, tab);
+}
 
+fn encode_prog_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
 	format!("{}({})",
 		encode(call.func, tab),
 		encode_list(&call.args, |arg| encode(&arg, tab))
 	)
 }
 
+fn encode_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
+	let func_type = call.func.kind();
+
+	match &func_type.lang {
+		Some (name) => encode_lang_function_call(name, &call.args, tab),
+		None => encode_prog_function_call(call, tab)
+	}
+}
+
+fn encode_function_make<'a>(func: &ast::FuncMake, tab: &str) -> String {
+	return format!("(({params}) => {{{body}}})",
+		params = encode_list(&func.params, |param| format!("{}", param.name)),
+		body   = encode_statment_block(&func.body, &add(tab) ),
+	);
+}
 
 fn encode<'a>(node: &'a ast::Node<'a> , tab: &str) -> String {
 	match node {
-		ast::Node::FuncMake (a) => format!("(({}) => {{{}}})",
-			encode_list(&a.params, |arg| format!("{}", arg.name)),
-			encode_statment_block( &a.body, &add(tab) ),
-		),
-		ast::Node::FuncCall (a) => encode_function_call(a, tab),
-		ast::Node::StmBlock (a) => encode_statment_block(a, &add(tab)),
-		ast::Node::Variable (a) => format!("{}", a.name),
-		ast::Node::NumValue (a) => format!("{}", a.value)
+		ast::Node::FuncMake (node) => encode_function_make(node, tab),
+		ast::Node::FuncCall (node) => encode_function_call(node, tab),
+		ast::Node::Variable (node) => format!("{}", node.name),
+		ast::Node::NumValue (node) => format!("{}", node.value)
 	}
 }
 

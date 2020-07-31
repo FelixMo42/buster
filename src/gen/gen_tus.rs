@@ -35,7 +35,7 @@ fn encode<'a>(node: &'a ast::Node<'a> , tab: &str) -> String {
 			encode(a.func, tab),
 			encode_list(&a.args, |arg| encode(&arg, tab))
 		),
-		ast::Node::StmBlock (a) => encode_statment_block(a, &add(tab)),
+		// ast::Node::StmBlock (a) => encode_statment_block(a, &add(tab)),
 		ast::Node::Variable (a) => format!("{}", a.name),
 		ast::Node::NumValue (a) => format!("{}", a.value)
 	}

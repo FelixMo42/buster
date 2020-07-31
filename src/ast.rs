@@ -3,17 +3,23 @@ use crate::scope;
 pub enum Node <'a> {
     FuncMake (FuncMake<'a>),
     FuncCall (FuncCall<'a>),
-    StmBlock (StmBlock<'a>),
+    // StmBlock (StmBlock<'a>),
     Variable (Variable<'a>),
     NumValue (NumValue),
     // Sequence (Sequence) 
 }
 
-// pub impl Node {
-//     pub fn resolve() -> scope::Kind {
-
-//     }
-// }
+impl <'a> Node <'a> {
+    pub fn kind(&self) -> &scope::Kind {
+        match self {
+            Node::FuncMake (node) => node.kind(),
+            Node::FuncCall (node) => node.kind(),
+            // Node::StmBlock (node) => &node.kind(),
+            Node::Variable (node) => node.kind(),
+            Node::NumValue (node) => node.kind(),
+        }
+    }
+}
 
 //
 
@@ -25,6 +31,18 @@ pub enum Statment <'a> {
 
 pub struct StmBlock <'a> {
     pub statments : Vec<Statment<'a>>
+}
+
+impl <'a> StmBlock <'a> {
+    pub fn kind(&self) -> &scope::Kind {
+        for statment in self.statments.iter() {
+            if let Statment::Output(node) = statment  {
+                return node.kind();
+            };
+        };
+
+        unreachable!();
+    }
 }
 
 //
@@ -39,6 +57,12 @@ pub struct FuncMake <'a> {
     pub body   : StmBlock<'a>
 }
 
+impl <'a> FuncMake <'a> {
+    pub fn kind(&self) -> &scope::Kind {
+        return self.body.kind()
+    }
+}
+
 //
 
 pub struct FuncCall <'a> {
@@ -46,23 +70,32 @@ pub struct FuncCall <'a> {
     pub args : Vec<Node<'a>>
 }
 
+impl <'a> FuncCall <'a> {
+    pub fn kind(&self) -> &scope::Kind {
+        return self.func.kind().args.last().expect("func has no return value");
+    }
+}
+
 //
 
 pub struct Variable <'a> {
-    pub name : String,
+    pub name : &'a str,
     pub scope : &'a scope::Scope<'a>
 }
 
 impl <'a> Variable <'a> {
     pub fn new(name: &'a str, scope: &'a scope::Scope) -> Self {
-        return Variable {
-            name : String::from(name),
-            scope : scope
-        };
+        return Variable { name , scope };
     }
 
     pub fn make(name: &'a str, scope: &'a scope::Scope) -> Node<'a> {
         return Node::Variable( Variable::new(name, scope) );
+    }
+}
+
+impl <'a> Variable <'a> {
+    pub fn kind(&self) -> &scope::Kind {
+        return self.scope.get(self.name).expect("variable is undefined");
     }
 }
 
@@ -83,8 +116,22 @@ impl NumValue {
     }
 }
 
+impl NumValue {
+    pub fn kind(&self) -> &scope::Kind {
+        // TODO: return a number kind
+        unreachable!();
+    }
+}
+
 //
 
 pub struct Sequence {
     pub legth : usize,
+}
+
+impl Sequence {
+    pub fn kind(&self) -> &scope::Kind {
+        // TODO: return a number kind
+        unreachable!();
+    }
 }
