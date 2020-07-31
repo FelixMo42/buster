@@ -78,7 +78,6 @@ impl NumValue {
 }
 
 //
-
 pub struct Sequence {
     pub legth : usize,
 }
