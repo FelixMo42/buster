@@ -22,11 +22,11 @@ fn encode_statment_block<'a>(stm_block: &ast::StmBlock<'a>, tab: &str) -> String
 	)
 }
 
-fn encode_operator_call<'a>(name: &str, args: &Vec<ast::Node>, tab: &str) -> String {
+fn encode_operator_call<'a>(operator: &str, args: &Vec<ast::Node>, tab: &str) -> String {
 	return format!("({a} {operator} {b})",
 		a = encode(&args[0], tab),
 		b = encode(&args[1], tab),
-		operator = name
+		operator = operator
 	);
 }
 
@@ -44,8 +44,11 @@ fn encode_prog_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
 fn encode_function_call<'a>(call: &ast::FuncCall, tab: &str) -> String {
 	let func_type = call.func.kind();
 
+	let add_lang_func = String::from("+");
+
 	match &func_type.lang {
-		Some (name) => encode_lang_function_call(name, &call.args, tab),
+		Some (add_lang_func) => encode_lang_function_call("+", &call.args, tab),
+		Some (_) => encode_prog_function_call(call, tab),
 		None => encode_prog_function_call(call, tab)
 	}
 }

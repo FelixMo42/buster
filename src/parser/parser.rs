@@ -1,46 +1,72 @@
 use crate::scope;
 use crate::ast;
-use crate::parser::tokenizer;
+use crate::parser::tokenizer::{ Tokens, Token, TokenKind, tokenize };
 
-pub fn parse <'a> (file: &'a str, scope: &'a mut scope::Scope) -> ast::Node<'a> {
-    for token in tokenizer::tokenize(file) {
-        println!("{:?}", token.text);
+// macro_rules! eat {
+//     ($toks:ident, $bla:ident) => {
+//         if $toks.source[$toks.index] {
+//             $toks.index += 1;
+//         }
+//     }
+// }
+
+#[inline]
+pub fn eat_kind(toks: &mut Tokens, kind: TokenKind) -> bool {
+    if toks.peek().kind == kind {
+        toks.next();
+        return true;
     }
 
-    return ast::NumValue::make(42);
+    return false;
 }
 
-// let add_func : ast::Node = ast::Variable::make("+", &scope);
-// let mul_func : ast::Node = ast::Variable::make("*", &scope);
+#[inline]
+pub fn eat_text(toks: &mut Tokens, text: &str) -> bool {
+    if toks.peek().text == text {
+        toks.next();
+        return true;
+    }
 
-// ast::Node::<FuncMak> e(ast::FuncMake {
-//     params : vec! [
-//         ast::FuncMakeParam {
-//             name : String::from("a"),
-//             kind : ast::Variable::make("i64", &scope)
-//         },
-//         ast::FuncMakeParam {
-//             name : String::from("b"),
-//             kind : ast::Variable::make("i64", &scope)
-//         }
-//     ],
-//     body : ast::StmBlock {
-//         statments : vec! [
-//             ast::Statment::Assign(String::from("c"), ast::Node::FuncCall( ast::FuncCall {
-//                 func : &mul_func,
-//                 args : vec! [
-//                     ast::Variable::make("a", &scope),
-//                     ast::NumValue::make(42),
-//                 ]
-//             } ) ),
+    return false;
+}
 
-//             ast::Statment::Output( ast::Node::FuncCall( ast::FuncCall {
-//                 func : &add_func,
-//                 args : vec! [
-//                     ast::Variable::make("b", &scope),
-//                     ast::Variable::make("c", &scope),
-//                 ]
-//             } ) )
-//         ]
-//     }
-// });
+type ParserRule <T> = fn(&mut Tokens) -> Option<T>;
+
+#[inline]
+pub fn eat_func<'a, T>(toks: &'a mut Tokens, func: fn(&'a mut Tokens) -> Option<T>) -> bool {
+    let save = toks.save();
+    let node = func(toks);
+
+    match node {
+        Some (_) => {
+            // toks.load(save);
+            return true;
+        }
+        None    => {
+            return false;
+        }
+    }
+}
+
+pub fn parse_node <'a> (toks: &'a mut Tokens) -> Option<ast::Node<'a>> {
+    if eat_text(toks, "(") {
+        if eat_text(toks, "[") {
+            if eat_text(toks, "]") {
+                if eat_text(toks, ")") {
+                    if eat_func(toks, parse_node) {
+                        return Some( ast::Variable::make("hi", toks.scope) );
+                    }
+                }
+            }
+        }
+    }
+
+    return None;
+}
+
+pub fn parse <'a> (file: &'a str, scope: &'a mut scope::Scope<'a>) -> ast::Node<'a> {
+    // make the token iterator
+    let mut tokens = tokenize(file, scope);
+
+    return parse_node(&mut tokens).expect("hi");
+}

@@ -14,6 +14,8 @@ enum CliOpts {
 	}
 }
 
+const FILE : &str = "([i64 a i64 b]) (+ a b)";
+
 fn main() {
 	let mut scope = scope::Scope::new();
 
@@ -29,7 +31,7 @@ fn main() {
 	let opt = CliOpts::from_args();
 
 	// parse the file
-	let root = parser::parser::parse("let x = 1", &mut scope);
+	let root = parser::parser::parse(FILE, &mut scope);
 	
 	// give are selves some padding
 	println!("");

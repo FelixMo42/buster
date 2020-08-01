@@ -1,3 +1,5 @@
+use crate::scope;
+
 #[allow(non_upper_case_globals)]
 const whitespace  : &'static [char]= &[' ', '\n', '\t'];
 
@@ -7,11 +9,11 @@ const punctuation : &'static [char]= &[
     ' ', '\n', '\t'
 ];
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenKind {
     Word,
     Punctuation,
-    StrValue
+    StringLit
 }
 
 pub struct Token {
@@ -21,20 +23,19 @@ pub struct Token {
     pub text   : String
 }
 
-pub struct Tokens <'a> {
+pub struct Tokenizer <'a> {
     file   : &'a str,
     index  : usize,
-    // buffer : Vec<Token>
 }
 
-impl <'a> Tokens <'a> {
+impl <'a> Tokenizer <'a> {
     fn done(&mut self) -> bool {
         return self.file.len() == self.index;
     }
 
     fn eat(&mut self, chr: char) -> bool {
         if !self.done() && self.file.as_bytes()[self.index] as char == chr {
-            // self.index += 1;
+            self.index += 1;
             return true;
         }
 
@@ -43,7 +44,7 @@ impl <'a> Tokens <'a> {
 
     fn eat_not(&mut self, chr: char) -> bool {
         if !self.done() && self.file.as_bytes()[self.index] as char != chr {
-            // self.index += 1;
+            self.index += 1;
             return true;
         }
 
@@ -57,7 +58,7 @@ impl <'a> Tokens <'a> {
     
         for chr in chrs.iter() {
             if self.file.as_bytes()[self.index] as char == *chr {
-                // self.index += 1;
+                self.index += 1;
                 return true;
             }
         }
@@ -76,37 +77,31 @@ impl <'a> Tokens <'a> {
             }
         }
 
-        // self.index += 1;
+        self.index += 1;
 
         return true;
     }
 
     fn read(&mut self) -> TokenKind {
         if self.eat_arr(punctuation) {
-            self.index += 1;
             return TokenKind::Punctuation;
         }
 
         if self.eat('\"') {
-            self.index += 1;
-
-            while self.eat_not('\"') { self.index += 1; }
+            while self.eat_not('\"') {}
 
             if self.eat('\"') {
-                self.index += 1;
-                return TokenKind::StrValue;
+                return TokenKind::StringLit;
             }
         }
 
-        while self.eat_arr_not(punctuation) {
-            self.index += 1;
-        }
+        while self.eat_arr_not(punctuation) {}
 
         return TokenKind::Word;
     }
 }
 
-impl Iterator for Tokens <'_> {
+impl Iterator for Tokenizer <'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
@@ -125,19 +120,62 @@ impl Iterator for Tokens <'_> {
 
         let kind = self.read();
 
-        return Some(Token {
+        let token = Token {
             kind   : kind,
             text   : self.file[start..self.index].to_string(),
             start  : start,
             length : self.index - start
-        })
+        };
+
+        return Some(token);
     }
 }
 
-pub fn tokenize <'a> (file : &'a str) -> Tokens {
-    return Tokens {
+pub struct Index {
+    index : usize
+}
+
+impl Index {
+    fn new() -> Self {
+        return Index {
+            index : 0
+        }
+    }
+}
+
+pub struct Tokens <'a> {
+    index  : usize,
+    source : Vec<Token>,
+    pub scope  : &'a mut scope::Scope <'a>
+}
+
+impl <'a> Tokens <'a> {
+    pub fn save(&self) -> usize {
+        return self.index;
+    }
+
+    pub fn load(&mut self, index: usize) {
+        self.index = index;
+    }
+
+    pub fn peek(&self) -> &Token {
+        return &self.source[self.index];
+    }
+
+    pub fn next(&mut self) {
+        self.index += 1;
+    }
+}
+
+pub fn tokenize<'a>(file : &str, scope : &'a mut scope::Scope <'a>) -> Tokens<'a>  {
+    let tokenizer = Tokenizer {
         file   : file,
         index  : 0,
-        // buffer : Vec::new()
+    };
+
+    return Tokens {
+        index  : 0,
+        source : tokenizer.collect(),
+        scope  : scope
     };
 }
