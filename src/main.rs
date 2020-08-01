@@ -1,13 +1,13 @@
 use structopt::StructOpt;
 
-// mod document;
+pub mod document;
 pub mod generator;
 pub mod ast;
 pub mod scope;
 pub mod parser;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "buster")]
+#[structopt(name="buster")]
 enum CliOpts {
 	To {
 		format: String
@@ -29,7 +29,7 @@ fn main() {
 	let opt = CliOpts::from_args();
 
 	// parse the file
-	let root = parser::parser::parser("");
+	let root = parser::parser::parse("let x = 1", &mut scope);
 	
 	// give are selves some padding
 	println!("");

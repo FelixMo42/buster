@@ -1,14 +1,19 @@
 use crate::scope;
 use crate::ast;
+use crate::parser::tokenizer;
 
-pub fn parser(file: &str) -> ast::Node {
+pub fn parse <'a> (file: &'a str, scope: &'a mut scope::Scope) -> ast::Node<'a> {
+    for token in tokenizer::tokenize(file) {
+        println!("{:?}", token.text);
+    }
+
     return ast::NumValue::make(42);
 }
 
 // let add_func : ast::Node = ast::Variable::make("+", &scope);
 // let mul_func : ast::Node = ast::Variable::make("*", &scope);
 
-// ast::Node::FuncMake(ast::FuncMake {
+// ast::Node::<FuncMak> e(ast::FuncMake {
 //     params : vec! [
 //         ast::FuncMakeParam {
 //             name : String::from("a"),
