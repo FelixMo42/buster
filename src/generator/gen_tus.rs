@@ -1,5 +1,5 @@
 use crate::ast;
-
+use crate::scope;
 fn add(tab: &str) -> String {
 	return format!("   {}", tab)
 }
@@ -20,12 +20,16 @@ fn encode_statment_block<'a>(stm_block: &ast::StmBlock<'a>, tab: &str) -> String
 	str_map(&stm_block.statments, |stm| format!("{}{}\n", tab, encode_statment(stm, tab))).join("")
 }
 
+fn encode_kind<'a>(kind: &'a scope::Kind , _tab: &str) -> String {
+	return format!("{}", kind.base);
+}
+
 fn encode<'a>(node: &'a ast::Node<'a> , tab: &str) -> String {
 	match node {
 		ast::Node::FuncMake (a) => format!("([{}]\n{})",
 			str_map(
 				& a.params,
-				|arg| format!("{} {}", encode(&arg.kind, tab), arg.name)
+				|arg| format!("{} {}", encode_kind(&arg.kind, tab), arg.name)
 			).join(", "),
 			encode_statment_block( &a.body, &add(tab) ),
 		),

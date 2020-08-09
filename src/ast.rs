@@ -94,21 +94,21 @@ impl <'a> FuncCall <'a> {
 //
 
 pub struct Variable <'a> {
-    pub name : &'a str,
+    pub name  : String,
     pub scope : &'a scope::Scope<'a>
 }
 
 impl <'a> Variable <'a> {
-    pub fn new(name: &'a str, scope: &'a scope::Scope) -> Self {
+    pub fn new(name: String, scope: &'a scope::Scope) -> Self {
         return Variable { name , scope };
     }
 
-    pub fn make(name: &'a str, scope: &'a scope::Scope) -> Node<'a> {
+    pub fn make(name: String, scope: &'a scope::Scope) -> Node<'a> {
         return Node::Variable( Variable::new(name, scope) );
     }
 
     pub fn kind(&self) -> &scope::Kind {
-        return self.scope.get(self.name).expect("variable is undefined");
+        return self.scope.get(&self.name).expect("variable is undefined");
     }
 }
 

@@ -34,14 +34,14 @@ pub fn parse_node <'a> (toks: &mut Tokens, scope: &'a Scope) -> Option<ast::Node
 
     if eat_text(toks, "(") {
         if eat_text(toks, "[") {
-            let params = Vec::new();
+            let mut params = Vec::new();
             while let Some(param) = parse_func_param(toks, scope) {
                 params.push(param);
             }
 
             if eat_text(toks, "]") {
                 if eat_text(toks, ")") {
-                    let body = Vec::new();
+                    let mut body = Vec::new();
                     while let Some(stm) = parse_statment(toks, scope) {
                         body.push(stm)
                     }
@@ -55,7 +55,7 @@ pub fn parse_node <'a> (toks: &mut Tokens, scope: &'a Scope) -> Option<ast::Node
     toks.load(save);
 
     if let Some(node) = eat_kind(toks, TokenKind::Word) {
-        return Some( ast::Variable::make("hi", scope) );                   
+        return Some( ast::Variable::make(node.text.clone(), scope) );                   
     }
 
     return None;
@@ -65,8 +65,8 @@ pub fn parse_func_param <'a> (toks: &mut Tokens, scope: &Scope) -> Option<ast::F
     if let Some(name) = eat_kind(toks, TokenKind::Word) {
         if let Some(kind) = eat_kind(toks, TokenKind::Word) {
             return Some( ast::FuncMakeParam {
-                name : name.text,
-                kind : Kind::new( kind.text )
+                name : name.text.clone(),
+                kind : Kind::new( kind.text.clone() )
             } );
         }
     }
@@ -80,7 +80,7 @@ pub fn parse_statment <'a> (toks: &mut Tokens, scope: &'a Scope) -> Option<ast::
     if eat_text(toks, "let") {
         if let Some(name) = eat_kind(toks, TokenKind::Word) {
             if let Some(val) = parse_node(toks, scope) {
-                return Some( ast::Statment::Assign(name.text, val) );
+                return Some( ast::Statment::Assign(name.text.clone(), val) );
             }
         }
     }
