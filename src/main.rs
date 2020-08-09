@@ -22,8 +22,8 @@ fn main() {
 	// add number operators
 	for name in [ "+", "-", "*", "/" ].iter() {
 		scope.add_lang_defined_func( name , vec! [
-			scope::Kind::new("i64"),
-			scope::Kind::new("i64"),
+			scope::Kind::new( String::from("i64") ),
+			scope::Kind::new( String::from("i64") ),
 		] );
 	};
 

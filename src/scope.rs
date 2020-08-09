@@ -8,9 +8,9 @@ pub struct Kind {
 }
 
 impl Kind {
-    pub fn new(base: &str) -> Self {
+    pub fn new(base: String) -> Self {
         return Kind {
-            base : String::from(base),
+            base : base,
             args : vec! [],
             lang : None
         };

@@ -131,26 +131,13 @@ impl Iterator for Tokenizer <'_> {
     }
 }
 
-pub struct Index {
-    index : usize
-}
-
-impl Index {
-    fn new() -> Self {
-        return Index {
-            index : 0
-        }
-    }
-}
-
-pub struct Tokens <'a> {
+pub struct Tokens {
     index  : usize,
-    source : Vec<Token>,
-    pub scope  : &'a mut scope::Scope <'a>
+    source : Vec<Token>
 }
 
-impl <'a> Tokens <'a> {
-    pub fn save(&self) -> usize {
+impl Tokens {
+    pub fn save(&mut self) -> usize {
         return self.index;
     }
 
@@ -165,9 +152,17 @@ impl <'a> Tokens <'a> {
     pub fn next(&mut self) {
         self.index += 1;
     }
+
+    pub fn read<'a>(&'a mut self) -> Option<&'a Token> {
+        let tok = &self.source[self.index];
+
+        self.index += 1;
+
+        return Some(tok);
+    }
 }
 
-pub fn tokenize<'a>(file : &str, scope : &'a mut scope::Scope <'a>) -> Tokens<'a>  {
+pub fn tokenize(file : &str) -> Tokens {
     let tokenizer = Tokenizer {
         file   : file,
         index  : 0,
@@ -175,7 +170,6 @@ pub fn tokenize<'a>(file : &str, scope : &'a mut scope::Scope <'a>) -> Tokens<'a
 
     return Tokens {
         index  : 0,
-        source : tokenizer.collect(),
-        scope  : scope
+        source : tokenizer.collect()
     };
 }

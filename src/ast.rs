@@ -34,6 +34,10 @@ pub struct StmBlock <'a> {
 }
 
 impl <'a> StmBlock <'a> {
+    pub fn new(statments: Vec<Statment<'a>>) -> Self {
+        return StmBlock { statments }
+    }
+
     pub fn kind(&self) -> &scope::Kind {
         for statment in self.statments.iter() {
             if let Statment::Output(node) = statment  {
@@ -47,17 +51,28 @@ impl <'a> StmBlock <'a> {
 
 //
 
-pub struct FuncMakeParam <'a> {
+pub struct FuncMakeParam {
     pub name : String,
-    pub kind : Node<'a>
+    pub kind : scope::Kind
 }
 
 pub struct FuncMake <'a> {
-    pub params : Vec<FuncMakeParam<'a>>,
+    pub params : Vec<FuncMakeParam>,
     pub body   : StmBlock<'a>
 }
 
 impl <'a> FuncMake <'a> {
+    pub fn new(params: Vec<FuncMakeParam>, body: StmBlock<'a>) -> Self {
+        return FuncMake {
+            params : params,
+            body   : body
+        }
+    }
+
+    pub fn make(params: Vec<FuncMakeParam>, body: StmBlock<'a>) -> Node<'a> {
+        return Node::FuncMake( FuncMake::new(params, body) );
+    }
+
     pub fn kind(&self) -> &scope::Kind {
         return self.body.kind()
     }
@@ -91,9 +106,7 @@ impl <'a> Variable <'a> {
     pub fn make(name: &'a str, scope: &'a scope::Scope) -> Node<'a> {
         return Node::Variable( Variable::new(name, scope) );
     }
-}
 
-impl <'a> Variable <'a> {
     pub fn kind(&self) -> &scope::Kind {
         return self.scope.get(self.name).expect("variable is undefined");
     }
@@ -114,9 +127,7 @@ impl NumValue {
     pub fn make<'a>(value: i64) -> Node<'a> {
         return Node::NumValue( NumValue::new(value) );
     }
-}
 
-impl NumValue {
     pub fn kind(&self) -> &scope::Kind {
         // TODO: return a number kind
         unreachable!();
